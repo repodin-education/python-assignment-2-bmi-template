@@ -1,0 +1,116 @@
+name: Autograding Tests
+
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: BMI Normal Weight Test
+        id: bmi-normal
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: BMI Normal Weight Test
+          command: "python3 main.py"
+          input: |
+            70
+            1.75
+          expected-output: |
+            BMI: 22.9
+            Normal weight
+          comparison-method: exact
+          timeout: 10
+          max-score: 2
+
+      - name: BMI Underweight Test
+        id: bmi-underweight
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: BMI Underweight Test
+          command: "python3 main.py"
+          input: |
+            50
+            1.70
+          expected-output: |
+            BMI: 17.3
+            Underweight
+          comparison-method: exact
+          timeout: 10
+          max-score: 2
+
+      - name: BMI Overweight Test
+        id: bmi-overweight
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: BMI Overweight Test
+          command: "python3 main.py"
+          input: |
+            80
+            1.75
+          expected-output: |
+            BMI: 26.1
+            Overweight
+          comparison-method: exact
+          timeout: 10
+          max-score: 2
+
+      - name: BMI Obese Test
+        id: bmi-obese
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: BMI Obese Test
+          command: "python3 main.py"
+          input: |
+            110
+            1.80
+          expected-output: |
+            BMI: 34.0
+            Obese
+          comparison-method: exact
+          timeout: 10
+          max-score: 2
+
+      - name: BMI Boundary Test
+        id: bmi-boundary
+        uses: classroom-resources/autograding-io-grader@v1
+        with:
+          test-name: BMI Boundary Test
+          command: "python3 main.py"
+          input: |
+            72.25
+            1.70
+          expected-output: |
+            BMI: 25.0
+            Overweight
+          comparison-method: exact
+          timeout: 10
+          max-score: 2
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          BMI-NORMAL_RESULTS: "${{ steps.bmi-normal.outputs.result }}"
+          BMI-UNDERWEIGHT_RESULTS: "${{ steps.bmi-underweight.outputs.result }}"
+          BMI-OVERWEIGHT_RESULTS: "${{ steps.bmi-overweight.outputs.result }}"
+          BMI-OBESE_RESULTS: "${{ steps.bmi-obese.outputs.result }}"
+          BMI-BOUNDARY_RESULTS: "${{ steps.bmi-boundary.outputs.result }}"
+        with:
+          runners: bmi-normal,bmi-underweight,bmi-overweight,bmi-obese,bmi-boundary
